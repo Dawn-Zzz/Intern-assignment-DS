@@ -26,10 +26,47 @@ const initialState: AuthState = {
   isAuthenticated: !!localStorage.getItem('accessToken'),
 }
 
+// Fetch user profile async thunk
+export const fetchUserProfile = createAsyncThunk(
+  'auth/fetchUserProfile',
+  async (_, { getState, rejectWithValue }) => {
+    try {
+      const state = getState() as { auth: AuthState }
+      const accessToken = state.auth.accessToken
+
+      if (!accessToken) {
+        return rejectWithValue('No access token available')
+      }
+
+      const response = await fetch('http://localhost:3000/user/me', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          // Token is invalid/expired
+          return rejectWithValue('SESSION_EXPIRED')
+        }
+        const error = await response.json()
+        return rejectWithValue(error.message || 'Failed to fetch user profile')
+      }
+
+      const data = await response.json()
+      return data.user
+    } catch (error) {
+      return rejectWithValue('Network error. Please try again.')
+    }
+  }
+)
+
 // Login async thunk
 export const loginUser = createAsyncThunk(
   'auth/login',
-  async (credentials: { email: string; password: string }, { rejectWithValue }) => {
+  async (credentials: { email: string; password: string }, { dispatch, rejectWithValue }) => {
     try {
       const response = await fetch('http://localhost:3000/auth/login', {
         method: 'POST',
@@ -50,6 +87,9 @@ export const loginUser = createAsyncThunk(
       localStorage.setItem('accessToken', data.accessToken)
       localStorage.setItem('refreshToken', data.refreshToken)
       
+      // Fetch user profile after successful login
+      dispatch(fetchUserProfile())
+      
       return data
     } catch (error) {
       return rejectWithValue('Network error. Please try again.')
@@ -60,7 +100,7 @@ export const loginUser = createAsyncThunk(
 // Signup async thunk
 export const signupUser = createAsyncThunk(
   'auth/signup',
-  async (credentials: { name: string; email: string; password: string }, { rejectWithValue }) => {
+  async (credentials: { name: string; email: string; password: string }, { dispatch, rejectWithValue }) => {
     try {
       const response = await fetch('http://localhost:3000/auth/signup', {
         method: 'POST',
@@ -80,6 +120,9 @@ export const signupUser = createAsyncThunk(
       // Store tokens in localStorage
       localStorage.setItem('accessToken', data.accessToken)
       localStorage.setItem('refreshToken', data.refreshToken)
+      
+      // Fetch user profile after successful signup
+      dispatch(fetchUserProfile())
       
       return data
     } catch (error) {
@@ -114,7 +157,6 @@ const authSlice = createSlice({
       })
       .addCase(loginUser.fulfilled, (state, action) => {
         state.isLoading = false
-        state.user = action.payload.user
         state.accessToken = action.payload.accessToken
         state.refreshToken = action.payload.refreshToken
         state.isAuthenticated = true
@@ -132,7 +174,6 @@ const authSlice = createSlice({
       })
       .addCase(signupUser.fulfilled, (state, action) => {
         state.isLoading = false
-        state.user = action.payload.user
         state.accessToken = action.payload.accessToken
         state.refreshToken = action.payload.refreshToken
         state.isAuthenticated = true
@@ -142,6 +183,30 @@ const authSlice = createSlice({
         state.isLoading = false
         state.error = action.payload as string
         state.isAuthenticated = false
+      })
+      // Fetch user profile cases
+      .addCase(fetchUserProfile.pending, (state) => {
+        state.isLoading = true
+      })
+      .addCase(fetchUserProfile.fulfilled, (state, action) => {
+        state.isLoading = false
+        state.user = action.payload
+        state.error = null
+      })
+      .addCase(fetchUserProfile.rejected, (state, action) => {
+        state.isLoading = false
+        if (action.payload === 'SESSION_EXPIRED') {
+          // Clear authentication state when session expires
+          state.user = null
+          state.accessToken = null
+          state.refreshToken = null
+          state.isAuthenticated = false
+          state.error = 'Session expired. Please login again.'
+          localStorage.removeItem('accessToken')
+          localStorage.removeItem('refreshToken')
+        } else {
+          state.error = action.payload as string
+        }
       })
   },
 })
