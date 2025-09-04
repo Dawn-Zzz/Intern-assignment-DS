@@ -54,7 +54,7 @@ export class AuthService {
   async login(email: string, password: string) {
     // Validate input
     if (!email || !password) {
-      throw new BadRequestException('Email and password are required');
+      throw new BadRequestException('Invalid email or password');
     }
 
     // Check if user exists
@@ -63,13 +63,13 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException('Invalid email or password');
     }
 
     // Verify password
     const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
     if (!isPasswordValid) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException('Invalid email or password');
     }
 
     // Generate JWT tokens

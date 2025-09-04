@@ -4,11 +4,20 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useDispatch, useSelector } from 'react-redux'
 import { Link, useNavigate } from 'react-router-dom'
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { 
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form"
 import { Eye, EyeOff, Mail, Lock } from "lucide-react"
 import { signInSchema, type SignInFormData } from '../lib/validations'
 import { loginUser, clearError } from '../store/authSlice'
 import type { RootState, AppDispatch } from '../store'
-import { AuthFormLayout, InputField } from './auth-form'
+import { AuthFormLayout } from './auth-form'
 
 export function SignInPage() {
   const [showPassword, setShowPassword] = useState(false)
@@ -16,17 +25,17 @@ export function SignInPage() {
   const navigate = useNavigate()
   const { isLoading, error, isAuthenticated } = useSelector((state: RootState) => state.auth)
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<SignInFormData>({
+  const form = useForm<SignInFormData>({
     resolver: zodResolver(signInSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
   })
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate('/dashboard')
+      navigate('/')
     }
   }, [isAuthenticated, navigate])
 
@@ -53,58 +62,78 @@ export function SignInPage() {
         </div>
       }
     >
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        {/* Email Field */}
-        <InputField
-          id="email"
-          label="Email"
-          type="email"
-          icon={Mail}
-          placeholder="Enter your email"
-          error={errors.email?.message}
-          {...register('email')}
-        />
-
-        {/* Password Field */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium">Password</span>
-            <a
-              href="#"
-              className="text-sm text-gray-900 hover:underline underline-offset-4"
-            >
-              Forgot password?
-            </a>
-          </div>
-          <InputField
-            id="password"
-            label=""
-            type={showPassword ? "text" : "password"}
-            icon={Lock}
-            placeholder="Enter your password"
-            error={errors.password?.message}
-            rightElement={
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="h-4 w-4 text-gray-400 hover:text-gray-600"
-              >
-                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </button>
-            }
-            {...register('password')}
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          {/* Email Field */}
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Email</FormLabel>
+                <FormControl>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Input
+                      placeholder="Enter your email"
+                      className="h-12 pl-10"
+                      {...field}
+                    />
+                  </div>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
-        </div>
 
-        {/* Sign In Button */}
-        <Button 
-          type="submit" 
-          className="w-full h-12 bg-black hover:bg-gray-800"
-          disabled={isLoading}
-        >
-          {isLoading ? "Signing in..." : "Sign in"}
-        </Button>
-      </form>
+          {/* Password Field */}
+          <FormField
+            control={form.control}
+            name="password"
+            render={({ field }) => (
+              <FormItem>
+                <div className="flex items-center justify-between">
+                  <FormLabel>Password</FormLabel>
+                  <a
+                    href="#"
+                    className="text-sm text-gray-900 hover:underline underline-offset-4"
+                  >
+                    Forgot password?
+                  </a>
+                </div>
+                <FormControl>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Input
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Enter your password"
+                      className="h-12 pl-10 pr-10"
+                      {...field}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 hover:text-gray-600"
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Sign In Button */}
+          <Button 
+            type="submit" 
+            className="w-full h-12 bg-black hover:bg-gray-800"
+            disabled={isLoading}
+          >
+            {isLoading ? "Signing in..." : "Sign in"}
+          </Button>
+        </form>
+      </Form>
     </AuthFormLayout>
   )
 }
