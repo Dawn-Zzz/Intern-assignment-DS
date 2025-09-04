@@ -6,6 +6,8 @@ import type { RootState, AppDispatch } from './store'
 import { SignInPage } from "@/components/SignInPage"
 import { SignUpPage } from "@/components/SignUpPage"
 import { DashboardPage } from "@/components/DashboardPage"
+import { AppSidebar } from "@/components/Sidebar"
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { fetchUserProfile } from './store/authSlice'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -60,14 +62,21 @@ function AppRoutes() {
         } 
       />
       <Route 
-        path="/" 
+        path="/*" 
         element={
           <ProtectedRoute>
-            <DashboardPage />
+            <SidebarProvider>
+              <AppSidebar />
+              <main className="flex-1">
+                <div className="p-4">
+                  <SidebarTrigger />
+                </div>
+                <DashboardPage />
+              </main>
+            </SidebarProvider>
           </ProtectedRoute>
         } 
       />
-      <Route path="/" element={<Navigate to="/" replace />} />
     </Routes>
   )
 }
