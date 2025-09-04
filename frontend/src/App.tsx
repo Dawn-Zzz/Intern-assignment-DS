@@ -7,7 +7,7 @@ import { SignInPage } from "@/components/SignInPage"
 import { SignUpPage } from "@/components/SignUpPage"
 import { DashboardPage } from "@/components/DashboardPage"
 import { AppSidebar } from "@/components/Sidebar"
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
+import { SidebarProvider } from "@/components/ui/sidebar"
 import { fetchUserProfile } from './store/authSlice'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -66,13 +66,12 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <SidebarProvider>
-              <AppSidebar />
-              <main className="flex-1">
-                <div className="p-4">
-                  <SidebarTrigger />
-                </div>
-                <DashboardPage />
-              </main>
+              <div className="flex min-h-screen w-full">
+                <AppSidebar />
+                <main className="flex-1 min-w-0 overflow-hidden">
+                  <DashboardPage />
+                </main>
+              </div>
             </SidebarProvider>
           </ProtectedRoute>
         } 
