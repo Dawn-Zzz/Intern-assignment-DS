@@ -1,5 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000'
+
 interface User {
   id: number
   name: string
@@ -38,7 +40,7 @@ export const fetchUserProfile = createAsyncThunk(
         return rejectWithValue('No access token available')
       }
 
-      const response = await fetch('http://localhost:3000/user/me', {
+      const response = await fetch(`${API_BASE_URL}/user/me`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${accessToken}`,
@@ -68,7 +70,7 @@ export const loginUser = createAsyncThunk(
   'auth/login',
   async (credentials: { email: string; password: string }, { dispatch, rejectWithValue }) => {
     try {
-      const response = await fetch('http://localhost:3000/auth/login', {
+      const response = await fetch(`${API_BASE_URL}/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -102,7 +104,7 @@ export const signupUser = createAsyncThunk(
   'auth/signup',
   async (credentials: { name: string; email: string; password: string }, { dispatch, rejectWithValue }) => {
     try {
-      const response = await fetch('http://localhost:3000/auth/signup', {
+      const response = await fetch(`${API_BASE_URL}/auth/signup`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
