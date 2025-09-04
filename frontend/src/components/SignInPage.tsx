@@ -2,17 +2,18 @@ import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useDispatch, useSelector } from 'react-redux'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Button } from "@/components/ui/button"
 import { Eye, EyeOff, Mail, Lock } from "lucide-react"
 import { signInSchema, type SignInFormData } from '../lib/validations'
 import { loginUser, clearError } from '../store/authSlice'
 import type { RootState, AppDispatch } from '../store'
-import { AuthFormLayout, InputField } from './ui-custom'
+import { AuthFormLayout, InputField } from './auth-form'
 
 export function SignInPage() {
   const [showPassword, setShowPassword] = useState(false)
   const dispatch = useDispatch<AppDispatch>()
+  const navigate = useNavigate()
   const { isLoading, error, isAuthenticated } = useSelector((state: RootState) => state.auth)
 
   const {
@@ -25,10 +26,9 @@ export function SignInPage() {
 
   useEffect(() => {
     if (isAuthenticated) {
-      // Redirect to dashboard or handle successful login
-      console.log('User is authenticated, redirect to dashboard')
+      navigate('/dashboard')
     }
-  }, [isAuthenticated])
+  }, [isAuthenticated, navigate])
 
   useEffect(() => {
     // Clear error when component mounts
