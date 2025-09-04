@@ -1,10 +1,20 @@
-import { Button } from "@/components/ui/button"
+import { Provider } from 'react-redux'
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import { store } from './store'
+import { SignInPage } from "@/components/SignInPage"
+import { SignUpPage } from "@/components/SignUpPage"
 
 function App() {
   return (
-    <div className="flex min-h-svh flex-col items-center justify-center">
-      <Button>Click me</Button>
-    </div>
+    <Provider store={store}>
+      <Router>
+        <Routes>
+          <Route path="/login" element={<SignInPage />} />
+          <Route path="/signup" element={<SignUpPage />} />
+          <Route path="/" element={<Navigate to="/login" replace />} />
+        </Routes>
+      </Router>
+    </Provider>
   )
 }
 
